@@ -20,20 +20,19 @@ typedef struct _image {
     unsigned int height;
 } Image;
 
-Image escala_de_cinza(Image img) {
-    for (unsigned int i = 0; i < img.height; ++i) {
-        for (unsigned int j = 0; j < img.width; ++j) {
-            int media = img.pixel[i][j][0] +
-                        img.pixel[i][j][1] +
-                        img.pixel[i][j][2];
-            media /= 3;
-            img.pixel[i][j][0] = media;
-            img.pixel[i][j][1] = media;
-            img.pixel[i][j][2] = media;
+Image applyGrayFilter(Image image) {
+    for (unsigned int column = 0; column < image.height; ++column) {
+        for (unsigned int line = 0; line < image.width; ++line) {
+            int mean = image.pixel[column][line][0] +
+                        image.pixel[column][line][1] +
+                        image.pixel[column][line][2];
+            mean /= 3;
+            image.pixel[column][line][0] = mean;
+            image.pixel[column][line][1] = mean;
+            image.pixel[column][line][2] = mean;
         }
     }
-
-    return img;
+    return image;
 }
 
 void blur(unsigned int h, unsigned short int pixel[512][512][3], int T, unsigned int w) {
@@ -139,7 +138,7 @@ int main() {
 
         switch(opcao) {
             case 1: { // Escala de Cinza
-                img = escala_de_cinza(img);
+                img = applyGrayFilter(img);
                 break;
             }
             case 2: { // Filtro Sepia
