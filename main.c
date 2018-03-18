@@ -37,24 +37,24 @@ Image applyGrayFilter(Image image) {
     return image;
 }
 // T ?
-Image applyBlurFilter(Image image, int T) {
+Image applyBlurFilter(Image image, int size) {
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             //--------------------------------------
             Pixel mean = {0, 0, 0};
-            int smaller_height = (image.height - 1 > column + T/2) ? column + T/2 : image.height - 1;
-            int smaller_width = (image.width - 1 > line + T/2) ? line + T/2 : image.width - 1;
-            for(int x_column = (0 > column - T/2 ? 0 : column - T/2); x_column <= smaller_height; ++x_column) {
-                for(int y_line = (0 > line - T/2 ? 0 : line - T/2); y_line <= smaller_width; ++y_line) {
+            int smaller_height = (image.height - 1 > column + size/2) ? column + size/2 : image.height - 1;
+            int smaller_width = (image.width - 1 > line + size/2) ? line + size/2 : image.width - 1;
+            for(int x_column = (0 > column - size/2 ? 0 : column - size/2); x_column <= smaller_height; ++x_column) {
+                for(int y_line = (0 > line - size/2 ? 0 : line - size/2); y_line <= smaller_width; ++y_line) {
                     mean.red += image.pixel[x_column][y_line][0];
                     mean.green += image.pixel[x_column][y_line][1];
                     mean.blue += image.pixel[x_column][y_line][2];
                 }
             }
 
-            mean.red /= T * T;
-            mean.green /= T * T;
-            mean.blue /= T * T;
+            mean.red /= size * size;
+            mean.green /= size * size;
+            mean.blue /= size * size;
 
             image.pixel[column][line][0] = mean.red;
             image.pixel[column][line][1] = mean.green;
@@ -73,24 +73,28 @@ Image applyRotation90Right(Image image) {
 
     for (unsigned int column = 0, y_line = 0; column < image_rotate.height; ++column, ++y_line) {
         for (int line = image_rotate.width - 1, x_column = 0; line >= 0; --line, ++x_column) {
+            //----------------------------------
             image_rotate.pixel[column][line][0] = image.pixel[x_column][y_line][0];
             image_rotate.pixel[column][line][1] = image.pixel[x_column][y_line][1];
             image_rotate.pixel[column][line][2] = image.pixel[x_column][y_line][2];
+            //----------------------------------
         }
     }
 
     return image_rotate;
 }
 
-void inverter_cores(unsigned short int pixel[512][512][3],
-                    unsigned int w, unsigned int h) {
-    for (unsigned int i = 0; i < h; ++i) {
-        for (unsigned int j = 0; j < w; ++j) {
-            pixel[i][j][0] = 255 - pixel[i][j][0];
-            pixel[i][j][1] = 255 - pixel[i][j][1];
-            pixel[i][j][2] = 255 - pixel[i][j][2];
+Image applyReverseFilter(Image image) {
+    for (unsigned int column = 0; column < image.height; ++column) {
+        for (unsigned int line = 0; line < image.width; ++line) {
+            //------------------------------------
+            image.pixel[column][line][0] = 255 - image.pixel[column][line][0];
+            image.pixel[column][line][1] = 255 - image.pixel[column][line][1];
+            image.pixel[column][line][2] = 255 - image.pixel[column][line][2];
+            //------------------------------------
         }
     }
+    return image;
 }
 
 Image cortar_imagem(Image img, int x, int y, int w, int h) {
@@ -147,6 +151,7 @@ int main() {
             case 2: { // Filtro Sepia
                 for (unsigned int x = 0; x < image.height; ++x) {
                     for (unsigned int j = 0; j < image.width; ++j) {
+                        //-------------------------------------
                         unsigned short int pixel[3];
                         pixel[0] = image.pixel[x][j][0];
                         pixel[1] = image.pixel[x][j][1];
@@ -163,9 +168,9 @@ int main() {
                         p =  pixel[0] * .272 + pixel[1] * .534 + pixel[2] * .131;
                         menor_r = (255 >  p) ? p : 255;
                         image.pixel[x][j][2] = menor_r;
+                        //-------------------------------------
                     }
                 }
-
                 break;
             }
             case 3: { // Blur
@@ -216,7 +221,7 @@ int main() {
                 break;
             }
             case 6: { // Inversao de Cores
-                inverter_cores(image.pixel, image.width, image.height);
+                image = applyReverseFilter(image);
                 break;
             }
             case 7: { // Cortar Imagem
