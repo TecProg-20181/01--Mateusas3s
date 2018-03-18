@@ -121,17 +121,17 @@ Image applySepiaFilter(Image image){
     return image;
 }
 
-Image cortar_imagem(Image img, int x, int y, int w, int h) {
+Image applyDropImage(Image image, int axis_x, int axis_y, int width_drop, int height_drop) {
     Image cortada;
 
-    cortada.width = w;
-    cortada.height = h;
+    cortada.width = width_drop;
+    cortada.height = height_drop;
 
-    for(int i = 0; i < h; ++i) {
-        for(int j = 0; j < w; ++j) {
-            cortada.pixel[i][j][0] = img.pixel[i + y][j + x][0];
-            cortada.pixel[i][j][1] = img.pixel[i + y][j + x][1];
-            cortada.pixel[i][j][2] = img.pixel[i + y][j + x][2];
+    for(int column = 0; column < height_drop; ++column) {
+        for(int line = 0; line < width_drop; ++line) {
+            cortada.pixel[column][line][0] = image.pixel[column + axis_y][line + axis_x][0];
+            cortada.pixel[column][line][1] = image.pixel[column + axis_y][line+ axis_x][1];
+            cortada.pixel[column][line][2] = image.pixel[column + axis_y][line + axis_x][2];
         }
     }
 
@@ -229,12 +229,12 @@ int main() {
                 break;
             }
             case 7: { // Cortar Imagem
-                int x, y;
-                scanf("%d %d", &x, &y);
-                int w, h;
-                scanf("%d %d", &w, &h);
+                int axis_x, axis_y;
+                scanf("%d %d", &axis_x, &axis_y);
+                int width_drop, height_drop;
+                scanf("%d %d", &width_drop, &height_drop);
 
-                image = cortar_imagem(image, x, y, w, h);
+                image = applyDropImage(image, axis_x, axis_y, width_drop, height_drop);
                 break;
             }
         }
