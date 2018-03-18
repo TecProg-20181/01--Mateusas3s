@@ -23,7 +23,7 @@ typedef struct _image {
 Image applyGrayFilter(Image image) {
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
-            //--------------------------------------
+            
             int mean = image.pixel[column][line][0] +
                         image.pixel[column][line][1] +
                         image.pixel[column][line][2];
@@ -31,16 +31,16 @@ Image applyGrayFilter(Image image) {
             image.pixel[column][line][0] = mean;
             image.pixel[column][line][1] = mean;
             image.pixel[column][line][2] = mean;
-            //--------------------------------------
+            
         }
     }
     return image;
 }
-// T ?
+
 Image applyBlurFilter(Image image, int size) {
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
-            //--------------------------------------
+            
             Pixel mean = {0, 0, 0};
             int smaller_height = (image.height - 1 > column + size/2) ? column + size/2 : image.height - 1;
             int smaller_width = (image.width - 1 > line + size/2) ? line + size/2 : image.width - 1;
@@ -59,7 +59,7 @@ Image applyBlurFilter(Image image, int size) {
             image.pixel[column][line][0] = mean.red;
             image.pixel[column][line][1] = mean.green;
             image.pixel[column][line][2] = mean.blue;
-            //--------------------------------------
+            
         }
     }
     return image;
@@ -73,11 +73,11 @@ Image applyRotation90Right(Image image) {
 
     for (unsigned int column = 0, y_line = 0; column < image_rotate.height; ++column, ++y_line) {
         for (int line = image_rotate.width - 1, x_column = 0; line >= 0; --line, ++x_column) {
-            //----------------------------------
+            
             image_rotate.pixel[column][line][0] = image.pixel[x_column][y_line][0];
             image_rotate.pixel[column][line][1] = image.pixel[x_column][y_line][1];
             image_rotate.pixel[column][line][2] = image.pixel[x_column][y_line][2];
-            //----------------------------------
+            
         }
     }
 
@@ -87,11 +87,35 @@ Image applyRotation90Right(Image image) {
 Image applyReverseFilter(Image image) {
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
-            //------------------------------------
+            
             image.pixel[column][line][0] = 255 - image.pixel[column][line][0];
             image.pixel[column][line][1] = 255 - image.pixel[column][line][1];
             image.pixel[column][line][2] = 255 - image.pixel[column][line][2];
-            //------------------------------------
+            
+        }
+    }
+    return image;
+}
+
+Image applySepiaFilter(Image image){
+    for (unsigned int column = 0; column < image.height; ++column) {
+        for (unsigned int line = 0; line < image.width; ++line) {
+            
+            unsigned short int pixels[3];
+            pixels[0] = image.pixel[column][line][0];
+            pixels[1] = image.pixel[column][line][1];
+            pixels[2] = image.pixel[column][line][2];
+            int pixel =  pixels[0] * .393 + pixels[1] * .769 + pixels[2] * .189;
+            int smaller_pixel = (255 >  pixel) ? pixel : 255;
+            
+            image.pixel[column][line][0] = smaller_pixel;
+            pixel =  pixels[0] * .349 + pixels[1] * .686 + pixels[2] * .168;
+            smaller_pixel = (255 >  pixel) ? pixel : 255;
+            image.pixel[column][line][1] = smaller_pixel;
+            pixel =  pixels[0] * .272 + pixels[1] * .534 + pixels[2] * .131;
+            smaller_pixel = (255 >  pixel) ? pixel : 255;
+            image.pixel[column][line][2] = smaller_pixel;
+            
         }
     }
     return image;
@@ -127,50 +151,30 @@ int main() {
     scanf("%u %u %d", &image.width, &image.height, &max_color);
 
     // read all pixels of image
-    for (unsigned int i = 0; i < image.height; ++i) {
-        for (unsigned int j = 0; j < image.width; ++j) {
-            scanf("%hu %hu %hu", &image.pixel[i][j][0],
-                                 &image.pixel[i][j][1],
-                                 &image.pixel[i][j][2]);
+    for (unsigned int column = 0; column < image.height; ++column) {
+        for (unsigned int line = 0; line < image.width; ++line) {
+            
+            scanf("%hu %hu %hu", &image.pixel[column][line][0],
+                                 &image.pixel[column][line][1],
+                                 &image.pixel[column][line][2]);
 
         }
     }
 
-    int n_opcoes;
-    scanf("%d", &n_opcoes);
+    int number_options;
+    scanf("%d", &number_options);
 
-    for(int i = 0; i < n_opcoes; ++i) {
-        int opcao;
-        scanf("%d", &opcao);
+    for(int column = 0; column < number_options; ++column) {
+        int option;
+        scanf("%d", &option);
 
-        switch(opcao) {
+        switch(option) {
             case 1: { // Escala de Cinza
                 image = applyGrayFilter(image);
                 break;
             }
             case 2: { // Filtro Sepia
-                for (unsigned int x = 0; x < image.height; ++x) {
-                    for (unsigned int j = 0; j < image.width; ++j) {
-                        //-------------------------------------
-                        unsigned short int pixel[3];
-                        pixel[0] = image.pixel[x][j][0];
-                        pixel[1] = image.pixel[x][j][1];
-                        pixel[2] = image.pixel[x][j][2];
-
-                        int p =  pixel[0] * .393 + pixel[1] * .769 + pixel[2] * .189;
-                        int menor_r = (255 >  p) ? p : 255;
-                        image.pixel[x][j][0] = menor_r;
-
-                        p =  pixel[0] * .349 + pixel[1] * .686 + pixel[2] * .168;
-                        menor_r = (255 >  p) ? p : 255;
-                        image.pixel[x][j][1] = menor_r;
-
-                        p =  pixel[0] * .272 + pixel[1] * .534 + pixel[2] * .131;
-                        menor_r = (255 >  p) ? p : 255;
-                        image.pixel[x][j][2] = menor_r;
-                        //-------------------------------------
-                    }
-                }
+                image = applySepiaFilter(image);
                 break;
             }
             case 3: { // Blur
