@@ -23,6 +23,7 @@ typedef struct _image {
 Image applyGrayFilter(Image image) {
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
+            //--------------------------------------
             int mean = image.pixel[column][line][0] +
                         image.pixel[column][line][1] +
                         image.pixel[column][line][2];
@@ -30,6 +31,7 @@ Image applyGrayFilter(Image image) {
             image.pixel[column][line][0] = mean;
             image.pixel[column][line][1] = mean;
             image.pixel[column][line][2] = mean;
+            //--------------------------------------
         }
     }
     return image;
@@ -38,8 +40,8 @@ Image applyGrayFilter(Image image) {
 Image applyBlurFilter(Image image, int T) {
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
+            //--------------------------------------
             Pixel mean = {0, 0, 0};
-
             int smaller_height = (image.height - 1 > column + T/2) ? column + T/2 : image.height - 1;
             int smaller_width = (image.width - 1 > line + T/2) ? line + T/2 : image.width - 1;
             for(int x_column = (0 > column - T/2 ? 0 : column - T/2); x_column <= smaller_height; ++x_column) {
@@ -57,26 +59,27 @@ Image applyBlurFilter(Image image, int T) {
             image.pixel[column][line][0] = mean.red;
             image.pixel[column][line][1] = mean.green;
             image.pixel[column][line][2] = mean.blue;
+            //--------------------------------------
         }
     }
     return image;
 }
 
-Image rotacionar90direita(Image img) {
-    Image rotacionada;
+Image applyRotation90Right(Image image) {
+    Image image_rotate;
 
-    rotacionada.width = img.height;
-    rotacionada.height = img.width;
+    image_rotate.width = image.height;
+    image_rotate.height = image.width;
 
-    for (unsigned int i = 0, y = 0; i < rotacionada.height; ++i, ++y) {
-        for (int j = rotacionada.width - 1, x = 0; j >= 0; --j, ++x) {
-            rotacionada.pixel[i][j][0] = img.pixel[x][y][0];
-            rotacionada.pixel[i][j][1] = img.pixel[x][y][1];
-            rotacionada.pixel[i][j][2] = img.pixel[x][y][2];
+    for (unsigned int column = 0, y_line = 0; column < image_rotate.height; ++column, ++y_line) {
+        for (int line = image_rotate.width - 1, x_column = 0; line >= 0; --line, ++x_column) {
+            image_rotate.pixel[column][line][0] = image.pixel[x_column][y_line][0];
+            image_rotate.pixel[column][line][1] = image.pixel[x_column][y_line][1];
+            image_rotate.pixel[column][line][2] = image.pixel[x_column][y_line][2];
         }
     }
 
-    return rotacionada;
+    return image_rotate;
 }
 
 void inverter_cores(unsigned short int pixel[512][512][3],
@@ -172,11 +175,11 @@ int main() {
                 break;
             }
             case 4: { // Rotacao
-                int quantas_vezes = 0;
-                scanf("%d", &quantas_vezes);
-                quantas_vezes %= 4;
-                for (int j = 0; j < quantas_vezes; ++j) {
-                    image = rotacionar90direita(image);
+                int number_time = 0;
+                scanf("%d", &number_time);
+                number_time %= 4;
+                for (int j = 0; j < number_time; ++j) {
+                    image = applyRotation90Right(image);
                 }
                 break;
             }
