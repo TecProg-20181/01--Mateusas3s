@@ -21,6 +21,7 @@ typedef struct _image {
 } Image;
 
 Image applyGrayFilter(Image image) {
+    
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
@@ -38,6 +39,7 @@ Image applyGrayFilter(Image image) {
 }
 
 Image applyBlurFilter(Image image, int size) {
+   
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
@@ -66,6 +68,7 @@ Image applyBlurFilter(Image image, int size) {
 }
 
 Image applyRotation90Right(Image image) {
+    
     Image image_rotate;
 
     image_rotate.width = image.height;
@@ -80,11 +83,11 @@ Image applyRotation90Right(Image image) {
             
         }
     }
-
     return image_rotate;
 }
 
 Image applyReverseFilter(Image image) {
+    
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
@@ -98,6 +101,7 @@ Image applyReverseFilter(Image image) {
 }
 
 Image applySepiaFilter(Image image){
+
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
@@ -122,20 +126,56 @@ Image applySepiaFilter(Image image){
 }
 
 Image applyDropImage(Image image, int axis_x, int axis_y, int width_drop, int height_drop) {
-    Image cortada;
+    
+    Image image_drop;
 
-    cortada.width = width_drop;
-    cortada.height = height_drop;
+    image_drop.width = width_drop;
+    image_drop.height = height_drop;
 
     for(int column = 0; column < height_drop; ++column) {
         for(int line = 0; line < width_drop; ++line) {
-            cortada.pixel[column][line][0] = image.pixel[column + axis_y][line + axis_x][0];
-            cortada.pixel[column][line][1] = image.pixel[column + axis_y][line+ axis_x][1];
-            cortada.pixel[column][line][2] = image.pixel[column + axis_y][line + axis_x][2];
+           
+            image_drop.pixel[column][line][0] = image.pixel[column + axis_y][line + axis_x][0];
+            image_drop.pixel[column][line][1] = image.pixel[column + axis_y][line+ axis_x][1];
+            image_drop.pixel[column][line][2] = image.pixel[column + axis_y][line + axis_x][2];
+        
         }
     }
+    return image_drop;
+}
 
-    return cortada;
+Image applyMirroring(Image image){
+
+    int axis_x = 0;
+    scanf("%d", &axis_x);
+
+    int width = image.width, height = image.height;
+
+    if (axis_x == 1) width /= 2;
+    else height /= 2;   
+    
+    for (int column = 0; column < height; ++column) {
+       for (int line = 0; line < width; ++line) {
+            
+            int x_column = column, y_line = line; 
+            
+            if (axis_x == 1) y_line = image.width - 1 - line;
+            else x_column = image.height - 1 - column;
+            
+            Pixel pixel_temporary;
+            pixel_temporary.red = image.pixel[column][line][0];
+            pixel_temporary.green = image.pixel[column][line][1];
+            pixel_temporary.blue = image.pixel[column][line][2]; 
+            image.pixel[column][line][0] = image.pixel[x_column][y_line][0];
+            image.pixel[column][line][1] = image.pixel[x_column][y_line][1];
+            image.pixel[column][line][2] = image.pixel[x_column][y_line][2];  
+            image.pixel[x_column][y_line][0] = pixel_temporary.red;
+            image.pixel[x_column][y_line][1] = pixel_temporary.green;
+            image.pixel[x_column][y_line][2] = pixel_temporary.blue;
+
+       }
+    }  
+    return image;
 }
 
 
@@ -147,8 +187,8 @@ int main() {
     scanf("%s", p3);
 
     // read width height and color of image
-    int max_color;
-    scanf("%u %u %d", &image.width, &image.height, &max_color);
+    int maximum_color;
+    scanf("%u %u %d", &image.width, &image.height, &maximum_color);
 
     // read all pixels of image
     for (unsigned int column = 0; column < image.height; ++column) {
@@ -164,71 +204,56 @@ int main() {
     int number_options;
     scanf("%d", &number_options);
 
-    for(int column = 0; column < number_options; ++column) {
+    for(int counter = 0; counter < number_options; ++counter) {
         int option;
         scanf("%d", &option);
 
         switch(option) {
-            case 1: { // Escala de Cinza
+            case 1: { // Gray Scale Filter
+
                 image = applyGrayFilter(image);
                 break;
+
             }
-            case 2: { // Filtro Sepia
+            case 2: { // Sepia Filter
+
                 image = applySepiaFilter(image);
                 break;
+
             }
-            case 3: { // Blur
+            case 3: { // Blur Filter
+
                 int size = 0;
                 scanf("%d", &size);
                 image = applyBlurFilter(image, size);
                 break;
+
             }
-            case 4: { // Rotacao
+            case 4: { // Rotation Image
+
                 int number_time = 0;
                 scanf("%d", &number_time);
                 number_time %= 4;
-                for (int j = 0; j < number_time; ++j) {
+                for (int counter = 0; counter < number_time; ++counter) {
                     image = applyRotation90Right(image);
                 }
                 break;
+
             }
-            case 5: { // Espelhamento
-                int horizontal = 0;
-                scanf("%d", &horizontal);
+            case 5: { // Mirroring Image
 
-                int w = image.width, h = image.height;
-
-                if (horizontal == 1) w /= 2;
-                else h /= 2;
-
-                for (int i2 = 0; i2 < h; ++i2) {
-                    for (int j = 0; j < w; ++j) {
-                        int x = i2, y = j;
-
-                        if (horizontal == 1) y = image.width - 1 - j;
-                        else x = image.height - 1 - i2;
-
-                        Pixel aux1;
-                        aux1.red = image.pixel[i2][j][0];
-                        aux1.green = image.pixel[i2][j][1];
-                        aux1.blue = image.pixel[i2][j][2];
-
-                        image.pixel[i2][j][0] = image.pixel[x][y][0];
-                        image.pixel[i2][j][1] = image.pixel[x][y][1];
-                        image.pixel[i2][j][2] = image.pixel[x][y][2];
-
-                        image.pixel[x][y][0] = aux1.red;
-                        image.pixel[x][y][1] = aux1.green;
-                        image.pixel[x][y][2] = aux1.blue;
-                    }
-                }
+                image = applyMirroring(image);
                 break;
+
             }
-            case 6: { // Inversao de Cores
+            case 6: { // Reverse Filter
+
                 image = applyReverseFilter(image);
                 break;
+
             }
-            case 7: { // Cortar Imagem
+            case 7: { // Drop Image
+
                 int axis_x, axis_y;
                 scanf("%d %d", &axis_x, &axis_y);
                 int width_drop, height_drop;
@@ -236,6 +261,7 @@ int main() {
 
                 image = applyDropImage(image, axis_x, axis_y, width_drop, height_drop);
                 break;
+
             }
         }
 
