@@ -7,18 +7,22 @@ typedef struct _pixel {
 } Pixel;
 
 typedef struct _image {
-    /* 
-     Estrutura de um pixel:
-        pixel[width][height][rgb]
-     Índice das cores:
-        0 -> red
-        1 -> green
-        2 -> blue
-    */
     unsigned short int pixel[512][512][3];
     unsigned int width;
     unsigned int height;
 } Image;
+
+int searchSmaller(int value1, int value2) {
+    if (value1 > value2 )
+        return value2;
+    return value1;
+}
+
+int searchBigger(int value1, int value2) {
+    if (value1 > value2 )
+        return value1;
+    return value2;
+}
 
 Image applyGrayFilter(Image image) {
     
@@ -44,10 +48,13 @@ Image applyBlurFilter(Image image, int size) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
             Pixel mean = {0, 0, 0};
-            int smaller_height = (image.height - 1 > column + size/2) ? column + size/2 : image.height - 1;
-            int smaller_width = (image.width - 1 > line + size/2) ? line + size/2 : image.width - 1;
-            for(int x_column = (0 > column - size/2 ? 0 : column - size/2); x_column <= smaller_height; ++x_column) {
-                for(int y_line = (0 > line - size/2 ? 0 : line - size/2); y_line <= smaller_width; ++y_line) {
+            int smaller_height = searchSmaller(image.height - 1, column + size/2);
+            int smaller_width = searchSmaller(image.width - 1, line + size/2);
+            int x_column = searchBigger(0, column - size/2);
+            
+            for(x_column; x_column <= smaller_height; ++x_column) {
+                int y_line = searchBigger(0, line - size/2);
+                for(y_line; y_line <= smaller_width; ++y_line) {
                     mean.red += image.pixel[x_column][y_line][0];
                     mean.green += image.pixel[x_column][y_line][1];
                     mean.blue += image.pixel[x_column][y_line][2];
