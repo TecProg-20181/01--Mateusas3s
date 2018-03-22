@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+// --- application structures --- // 
 typedef struct _pixel {
     unsigned short int red;
     unsigned short int green;
@@ -12,6 +13,7 @@ typedef struct _image {
     unsigned int height;
 } Image;
 
+// --- comparison functions --- //
 int searchSmaller(int value1, int value2) {
     if (value1 > value2 )
         return value2;
@@ -23,7 +25,7 @@ int searchBigger(int value1, int value2) {
         return value1;
     return value2;
 }
-
+// --- functions for image manipulation --- //
 Image applyGrayFilter(Image image) {
     
     for (unsigned int column = 0; column < image.height; ++column) {
@@ -184,20 +186,20 @@ Image applyMirroring(Image image){
     }  
     return image;
 }
-
-
-int main() {
-    Image image;
-
-    // read type of image
+// --- reading functions --- //
+void readTypeImage(){
     char p3[4];
     scanf("%s", p3);
+}
 
-    // read width height and color of image
+Image readAttributesImage(Image image){
     int maximum_color;
     scanf("%u %u %d", &image.width, &image.height, &maximum_color);
 
-    // read all pixels of image
+    return image;
+}
+
+Image readPixelsImage(Image image){
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
@@ -207,6 +209,57 @@ int main() {
 
         }
     }
+
+    return image;
+}
+
+Image readImage(Image image){
+
+    readTypeImage();
+
+    image = readAttributesImage(image);
+
+    image = readPixelsImage(image);
+
+    return image;
+}
+// --- writing functions --- //
+void writeTypeImage(){
+    printf("P3\n");
+}
+
+void writeAttributesImage(Image image){
+    printf("%u %u\n255\n", image.width, image.height);
+}
+
+void writePixelsImage(Image image){
+    // print pixels of image
+    for (unsigned int i = 0; i < image.height; ++i) {
+        for (unsigned int j = 0; j < image.width; ++j) {
+            printf("%hu %hu %hu ", image.pixel[i][j].red,
+                                   image.pixel[i][j].green,
+                                   image.pixel[i][j].blue);
+
+        }
+        printf("\n");
+    }
+}
+
+void writeImage(Image image){
+
+    writeTypeImage();
+
+    writeAttributesImage(image);
+
+    writePixelsImage(image);
+}
+
+// --- main application --- //
+int main() {
+
+    Image image;
+
+    image = readImage(image);
 
     int number_options;
     scanf("%d", &number_options);
@@ -268,26 +321,12 @@ int main() {
 
                 image = applyDropImage(image, axis_x, axis_y, width_drop, height_drop);
                 break;
-
+                
             }
         }
-
     }
 
-    // print type of image
-    printf("P3\n");
-    // print width height and color of image
-    printf("%u %u\n255\n", image.width, image.height);
+    writeImage(image);
 
-    // print pixels of image
-    for (unsigned int i = 0; i < image.height; ++i) {
-        for (unsigned int j = 0; j < image.width; ++j) {
-            printf("%hu %hu %hu ", image.pixel[i][j].red,
-                                   image.pixel[i][j].green,
-                                   image.pixel[i][j].blue);
-
-        }
-        printf("\n");
-    }
     return 0;
 }
