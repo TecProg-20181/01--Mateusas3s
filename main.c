@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+// --- application structures --- // 
 typedef struct _pixel {
     unsigned short int red;
     unsigned short int green;
@@ -7,31 +8,43 @@ typedef struct _pixel {
 } Pixel;
 
 typedef struct _image {
-    /* 
-     Estrutura de um pixel:
-        pixel[width][height][rgb]
-     Índice das cores:
-        0 -> red
-        1 -> green
-        2 -> blue
-    */
-    unsigned short int pixel[512][512][3];
+    Pixel pixel[512][512];
     unsigned int width;
     unsigned int height;
 } Image;
 
+typedef struct _dropArea{
+    int axis_x;
+    int axis_y;
+    int width_drop;
+    int height_drop;
+} DropArea;
+
+// --- comparison functions --- //
+int searchSmaller(int value1, int value2) {
+    if (value1 > value2 )
+        return value2;
+    return value1;
+}
+
+int searchBigger(int value1, int value2) {
+    if (value1 > value2 )
+        return value1;
+    return value2;
+}
+// --- functions for image manipulation --- //
 Image applyGrayFilter(Image image) {
     
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
-            int mean = image.pixel[column][line][0] +
-                        image.pixel[column][line][1] +
-                        image.pixel[column][line][2];
+            int mean = image.pixel[column][line].red +
+                        image.pixel[column][line].green +
+                        image.pixel[column][line].blue;
             mean /= 3;
-            image.pixel[column][line][0] = mean;
-            image.pixel[column][line][1] = mean;
-            image.pixel[column][line][2] = mean;
+            image.pixel[column][line].red = mean;
+            image.pixel[column][line].green = mean;
+            image.pixel[column][line].blue = mean;
             
         }
     }
@@ -44,13 +57,16 @@ Image applyBlurFilter(Image image, int size) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
             Pixel mean = {0, 0, 0};
-            int smaller_height = (image.height - 1 > column + size/2) ? column + size/2 : image.height - 1;
-            int smaller_width = (image.width - 1 > line + size/2) ? line + size/2 : image.width - 1;
-            for(int x_column = (0 > column - size/2 ? 0 : column - size/2); x_column <= smaller_height; ++x_column) {
-                for(int y_line = (0 > line - size/2 ? 0 : line - size/2); y_line <= smaller_width; ++y_line) {
-                    mean.red += image.pixel[x_column][y_line][0];
-                    mean.green += image.pixel[x_column][y_line][1];
-                    mean.blue += image.pixel[x_column][y_line][2];
+            int smaller_height = searchSmaller(image.height - 1, column + size/2);
+            int smaller_width = searchSmaller(image.width - 1, line + size/2);
+            int x_column = searchBigger(0, column - size/2);
+            
+            for(x_column; x_column <= smaller_height; ++x_column) {
+                int y_line = searchBigger(0, line - size/2);
+                for(y_line; y_line <= smaller_width; ++y_line) {
+                    mean.red += image.pixel[x_column][y_line].red;
+                    mean.green += image.pixel[x_column][y_line].green;
+                    mean.blue += image.pixel[x_column][y_line].blue;
                 }
             }
 
@@ -58,9 +74,9 @@ Image applyBlurFilter(Image image, int size) {
             mean.green /= size * size;
             mean.blue /= size * size;
 
-            image.pixel[column][line][0] = mean.red;
-            image.pixel[column][line][1] = mean.green;
-            image.pixel[column][line][2] = mean.blue;
+            image.pixel[column][line].red = mean.red;
+            image.pixel[column][line].green = mean.green;
+            image.pixel[column][line].blue = mean.blue;
             
         }
     }
@@ -77,9 +93,9 @@ Image applyRotation90Right(Image image) {
     for (unsigned int column = 0, y_line = 0; column < image_rotate.height; ++column, ++y_line) {
         for (int line = image_rotate.width - 1, x_column = 0; line >= 0; --line, ++x_column) {
             
-            image_rotate.pixel[column][line][0] = image.pixel[x_column][y_line][0];
-            image_rotate.pixel[column][line][1] = image.pixel[x_column][y_line][1];
-            image_rotate.pixel[column][line][2] = image.pixel[x_column][y_line][2];
+            image_rotate.pixel[column][line].red = image.pixel[x_column][y_line].red;
+            image_rotate.pixel[column][line].green = image.pixel[x_column][y_line].green;
+            image_rotate.pixel[column][line].blue = image.pixel[x_column][y_line].blue;
             
         }
     }
@@ -91,9 +107,9 @@ Image applyReverseFilter(Image image) {
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
-            image.pixel[column][line][0] = 255 - image.pixel[column][line][0];
-            image.pixel[column][line][1] = 255 - image.pixel[column][line][1];
-            image.pixel[column][line][2] = 255 - image.pixel[column][line][2];
+            image.pixel[column][line].red = 255 - image.pixel[column][line].red;
+            image.pixel[column][line].green = 255 - image.pixel[column][line].green;
+            image.pixel[column][line].blue = 255 - image.pixel[column][line].blue;
             
         }
     }
@@ -105,39 +121,39 @@ Image applySepiaFilter(Image image){
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
-            unsigned short int pixels[3];
-            pixels[0] = image.pixel[column][line][0];
-            pixels[1] = image.pixel[column][line][1];
-            pixels[2] = image.pixel[column][line][2];
-            int pixel =  pixels[0] * .393 + pixels[1] * .769 + pixels[2] * .189;
+            Pixel pixels;
+            pixels.red = image.pixel[column][line].red;
+            pixels.green = image.pixel[column][line].green;
+            pixels.blue = image.pixel[column][line].blue;
+            int pixel =  pixels.red * .393 + pixels.green * .769 + pixels.blue * .189;
             int smaller_pixel = (255 >  pixel) ? pixel : 255;
             
-            image.pixel[column][line][0] = smaller_pixel;
-            pixel =  pixels[0] * .349 + pixels[1] * .686 + pixels[2] * .168;
+            image.pixel[column][line].red = smaller_pixel;
+            pixel =  pixels.red * .349 + pixels.green * .686 + pixels.blue * .168;
             smaller_pixel = (255 >  pixel) ? pixel : 255;
-            image.pixel[column][line][1] = smaller_pixel;
-            pixel =  pixels[0] * .272 + pixels[1] * .534 + pixels[2] * .131;
+            image.pixel[column][line].green = smaller_pixel;
+            pixel =  pixels.red * .272 + pixels.green * .534 + pixels.blue * .131;
             smaller_pixel = (255 >  pixel) ? pixel : 255;
-            image.pixel[column][line][2] = smaller_pixel;
+            image.pixel[column][line].blue = smaller_pixel;
             
         }
     }
     return image;
 }
 
-Image applyDropImage(Image image, int axis_x, int axis_y, int width_drop, int height_drop) {
+Image applyDropImage(Image image, DropArea dropArea) {
     
     Image image_drop;
 
-    image_drop.width = width_drop;
-    image_drop.height = height_drop;
+    image_drop.width = dropArea.width_drop;
+    image_drop.height = dropArea.height_drop;
 
-    for(int column = 0; column < height_drop; ++column) {
-        for(int line = 0; line < width_drop; ++line) {
+    for(int column = 0; column < dropArea.height_drop; ++column) {
+        for(int line = 0; line < dropArea.width_drop; ++line) {
            
-            image_drop.pixel[column][line][0] = image.pixel[column + axis_y][line + axis_x][0];
-            image_drop.pixel[column][line][1] = image.pixel[column + axis_y][line+ axis_x][1];
-            image_drop.pixel[column][line][2] = image.pixel[column + axis_y][line + axis_x][2];
+            image_drop.pixel[column][line].red = image.pixel[column + dropArea.axis_y][line + dropArea.axis_x].red;
+            image_drop.pixel[column][line].green = image.pixel[column + dropArea.axis_y][line + dropArea.axis_x].green;
+            image_drop.pixel[column][line].blue = image.pixel[column + dropArea.axis_y][line + dropArea.axis_x].blue;
         
         }
     }
@@ -163,43 +179,94 @@ Image applyMirroring(Image image){
             else x_column = image.height - 1 - column;
             
             Pixel pixel_temporary;
-            pixel_temporary.red = image.pixel[column][line][0];
-            pixel_temporary.green = image.pixel[column][line][1];
-            pixel_temporary.blue = image.pixel[column][line][2]; 
-            image.pixel[column][line][0] = image.pixel[x_column][y_line][0];
-            image.pixel[column][line][1] = image.pixel[x_column][y_line][1];
-            image.pixel[column][line][2] = image.pixel[x_column][y_line][2];  
-            image.pixel[x_column][y_line][0] = pixel_temporary.red;
-            image.pixel[x_column][y_line][1] = pixel_temporary.green;
-            image.pixel[x_column][y_line][2] = pixel_temporary.blue;
+            pixel_temporary.red = image.pixel[column][line].red;
+            pixel_temporary.green = image.pixel[column][line].green;
+            pixel_temporary.blue = image.pixel[column][line].blue; 
+            image.pixel[column][line].red = image.pixel[x_column][y_line].red;
+            image.pixel[column][line].green = image.pixel[x_column][y_line].green;
+            image.pixel[column][line].blue = image.pixel[x_column][y_line].blue;  
+            image.pixel[x_column][y_line].red = pixel_temporary.red;
+            image.pixel[x_column][y_line].green = pixel_temporary.green;
+            image.pixel[x_column][y_line].blue = pixel_temporary.blue;
 
        }
     }  
     return image;
 }
-
-
-int main() {
-    Image image;
-
-    // read type of image
+// --- reading functions --- //
+void readTypeImage(){
     char p3[4];
     scanf("%s", p3);
+}
 
-    // read width height and color of image
+Image readAttributesImage(Image image){
     int maximum_color;
     scanf("%u %u %d", &image.width, &image.height, &maximum_color);
 
-    // read all pixels of image
+    return image;
+}
+
+Image readPixelsImage(Image image){
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
-            scanf("%hu %hu %hu", &image.pixel[column][line][0],
-                                 &image.pixel[column][line][1],
-                                 &image.pixel[column][line][2]);
+            scanf("%hu %hu %hu", &image.pixel[column][line].red,
+                                 &image.pixel[column][line].green,
+                                 &image.pixel[column][line].blue);
 
         }
     }
+
+    return image;
+}
+
+Image readImage(Image image){
+
+    readTypeImage();
+
+    image = readAttributesImage(image);
+
+    image = readPixelsImage(image);
+
+    return image;
+}
+// --- writing functions --- //
+void writeTypeImage(){
+    printf("P3\n");
+}
+
+void writeAttributesImage(Image image){
+    printf("%u %u\n255\n", image.width, image.height);
+}
+
+void writePixelsImage(Image image){
+    // print pixels of image
+    for (unsigned int i = 0; i < image.height; ++i) {
+        for (unsigned int j = 0; j < image.width; ++j) {
+            printf("%hu %hu %hu ", image.pixel[i][j].red,
+                                   image.pixel[i][j].green,
+                                   image.pixel[i][j].blue);
+
+        }
+        printf("\n");
+    }
+}
+
+void writeImage(Image image){
+
+    writeTypeImage();
+
+    writeAttributesImage(image);
+
+    writePixelsImage(image);
+}
+
+// --- main application --- //
+int main() {
+
+    Image image;
+
+    image = readImage(image);
 
     int number_options;
     scanf("%d", &number_options);
@@ -254,33 +321,18 @@ int main() {
             }
             case 7: { // Drop Image
 
-                int axis_x, axis_y;
-                scanf("%d %d", &axis_x, &axis_y);
-                int width_drop, height_drop;
-                scanf("%d %d", &width_drop, &height_drop);
+                DropArea dropArea;
+                scanf("%d %d", &dropArea.axis_x, &dropArea.axis_y);
+                scanf("%d %d", &dropArea.width_drop, &dropArea.height_drop);
 
-                image = applyDropImage(image, axis_x, axis_y, width_drop, height_drop);
+                image = applyDropImage(image, dropArea);
                 break;
 
             }
         }
-
     }
 
-    // print type of image
-    printf("P3\n");
-    // print width height and color of image
-    printf("%u %u\n255\n", image.width, image.height);
+    writeImage(image);
 
-    // print pixels of image
-    for (unsigned int i = 0; i < image.height; ++i) {
-        for (unsigned int j = 0; j < image.width; ++j) {
-            printf("%hu %hu %hu ", image.pixel[i][j][0],
-                                   image.pixel[i][j][1],
-                                   image.pixel[i][j][2]);
-
-        }
-        printf("\n");
-    }
     return 0;
 }
