@@ -13,6 +13,13 @@ typedef struct _image {
     unsigned int height;
 } Image;
 
+typedef struct _dropArea{
+    int axis_x;
+    int axis_y;
+    int width_drop;
+    int height_drop;
+} DropArea;
+
 // --- comparison functions --- //
 int searchSmaller(int value1, int value2) {
     if (value1 > value2 )
@@ -134,19 +141,19 @@ Image applySepiaFilter(Image image){
     return image;
 }
 
-Image applyDropImage(Image image, int axis_x, int axis_y, int width_drop, int height_drop) {
+Image applyDropImage(Image image, DropArea dropArea) {
     
     Image image_drop;
 
-    image_drop.width = width_drop;
-    image_drop.height = height_drop;
+    image_drop.width = dropArea.width_drop;
+    image_drop.height = dropArea.height_drop;
 
-    for(int column = 0; column < height_drop; ++column) {
-        for(int line = 0; line < width_drop; ++line) {
+    for(int column = 0; column < dropArea.height_drop; ++column) {
+        for(int line = 0; line < dropArea.width_drop; ++line) {
            
-            image_drop.pixel[column][line].red = image.pixel[column + axis_y][line + axis_x].red;
-            image_drop.pixel[column][line].green = image.pixel[column + axis_y][line+ axis_x].green;
-            image_drop.pixel[column][line].blue = image.pixel[column + axis_y][line + axis_x].blue;
+            image_drop.pixel[column][line].red = image.pixel[column + dropArea.axis_y][line + dropArea.axis_x].red;
+            image_drop.pixel[column][line].green = image.pixel[column + dropArea.axis_y][line + dropArea.axis_x].green;
+            image_drop.pixel[column][line].blue = image.pixel[column + dropArea.axis_y][line + dropArea.axis_x].blue;
         
         }
     }
@@ -314,14 +321,13 @@ int main() {
             }
             case 7: { // Drop Image
 
-                int axis_x, axis_y;
-                scanf("%d %d", &axis_x, &axis_y);
-                int width_drop, height_drop;
-                scanf("%d %d", &width_drop, &height_drop);
+                DropArea dropArea;
+                scanf("%d %d", &dropArea.axis_x, &dropArea.axis_y);
+                scanf("%d %d", &dropArea.width_drop, &dropArea.height_drop);
 
-                image = applyDropImage(image, axis_x, axis_y, width_drop, height_drop);
+                image = applyDropImage(image, dropArea);
                 break;
-                
+
             }
         }
     }
