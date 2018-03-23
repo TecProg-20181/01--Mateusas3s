@@ -51,8 +51,11 @@ Image applyGrayFilter(Image image) {
     return image;
 }
 
-Image applyBlurFilter(Image image, int size) {
-   
+Image applyBlurFilter(Image image) {
+
+    int size = 0;
+    scanf("%d", &size);
+    
     for (unsigned int column = 0; column < image.height; ++column) {
         for (unsigned int line = 0; line < image.width; ++line) {
             
@@ -83,7 +86,7 @@ Image applyBlurFilter(Image image, int size) {
     return image;
 }
 
-Image applyRotation90Right(Image image) {
+Image applyRotation(Image image) {
     
     Image image_rotate;
 
@@ -100,6 +103,18 @@ Image applyRotation90Right(Image image) {
         }
     }
     return image_rotate;
+}
+
+
+Image applyRotation90Right(Image image){
+
+    int number_time = 0;
+    scanf("%d", &number_time);
+    number_time %= 4;
+    for (int counter = 0; counter < number_time; ++counter) {
+        image = applyRotation(image);
+    }
+    return image;
 }
 
 Image applyReverseFilter(Image image) {
@@ -126,14 +141,14 @@ Image applySepiaFilter(Image image){
             pixels.green = image.pixel[column][line].green;
             pixels.blue = image.pixel[column][line].blue;
             int pixel =  pixels.red * .393 + pixels.green * .769 + pixels.blue * .189;
-            int smaller_pixel = (255 >  pixel) ? pixel : 255;
+            int smaller_pixel = searchSmaller(255, pixel);
             
             image.pixel[column][line].red = smaller_pixel;
             pixel =  pixels.red * .349 + pixels.green * .686 + pixels.blue * .168;
-            smaller_pixel = (255 >  pixel) ? pixel : 255;
+            smaller_pixel = searchSmaller(255, pixel);
             image.pixel[column][line].green = smaller_pixel;
             pixel =  pixels.red * .272 + pixels.green * .534 + pixels.blue * .131;
-            smaller_pixel = (255 >  pixel) ? pixel : 255;
+            smaller_pixel = searchSmaller(255, pixel);
             image.pixel[column][line].blue = smaller_pixel;
             
         }
@@ -141,9 +156,12 @@ Image applySepiaFilter(Image image){
     return image;
 }
 
-Image applyDropImage(Image image, DropArea dropArea) {
-    
+Image applyDropImage(Image image) {
+
     Image image_drop;
+    DropArea dropArea;
+    scanf("%d %d", &dropArea.axis_x, &dropArea.axis_y);
+    scanf("%d %d", &dropArea.width_drop, &dropArea.height_drop);
 
     image_drop.width = dropArea.width_drop;
     image_drop.height = dropArea.height_drop;
@@ -151,9 +169,17 @@ Image applyDropImage(Image image, DropArea dropArea) {
     for(int column = 0; column < dropArea.height_drop; ++column) {
         for(int line = 0; line < dropArea.width_drop; ++line) {
            
-            image_drop.pixel[column][line].red = image.pixel[column + dropArea.axis_y][line + dropArea.axis_x].red;
-            image_drop.pixel[column][line].green = image.pixel[column + dropArea.axis_y][line + dropArea.axis_x].green;
-            image_drop.pixel[column][line].blue = image.pixel[column + dropArea.axis_y][line + dropArea.axis_x].blue;
+            image_drop.pixel[column][line].red = image.pixel[column +
+                                                 dropArea.axis_y][line +
+                                                 dropArea.axis_x].red;
+
+            image_drop.pixel[column][line].green = image.pixel[column +
+                                                   dropArea.axis_y][line + 
+                                                   dropArea.axis_x].green;
+
+            image_drop.pixel[column][line].blue = image.pixel[column + 
+                                                  dropArea.axis_y][line + 
+                                                  dropArea.axis_x].blue;
         
         }
     }
@@ -167,21 +193,26 @@ Image applyMirroring(Image image){
 
     int width = image.width, height = image.height;
 
-    if (axis_x == 1) width /= 2;
-    else height /= 2;   
+    if (axis_x == 1)
+        width /= 2;
+    else 
+        height /= 2;   
     
     for (int column = 0; column < height; ++column) {
        for (int line = 0; line < width; ++line) {
             
             int x_column = column, y_line = line; 
             
-            if (axis_x == 1) y_line = image.width - 1 - line;
-            else x_column = image.height - 1 - column;
+            if (axis_x == 1) 
+                y_line = image.width - 1 - line;
+            else 
+                x_column = image.height - 1 - column;
             
             Pixel pixel_temporary;
             pixel_temporary.red = image.pixel[column][line].red;
             pixel_temporary.green = image.pixel[column][line].green;
-            pixel_temporary.blue = image.pixel[column][line].blue; 
+            pixel_temporary.blue = image.pixel[column][line].blue;
+            
             image.pixel[column][line].red = image.pixel[x_column][y_line].red;
             image.pixel[column][line].green = image.pixel[x_column][y_line].green;
             image.pixel[column][line].blue = image.pixel[x_column][y_line].blue;  
@@ -290,20 +321,13 @@ int main() {
             }
             case 3: { // Blur Filter
 
-                int size = 0;
-                scanf("%d", &size);
-                image = applyBlurFilter(image, size);
+                image = applyBlurFilter(image);
                 break;
 
             }
             case 4: { // Rotation Image
 
-                int number_time = 0;
-                scanf("%d", &number_time);
-                number_time %= 4;
-                for (int counter = 0; counter < number_time; ++counter) {
-                    image = applyRotation90Right(image);
-                }
+                image = applyRotation90Right(image);
                 break;
 
             }
@@ -321,11 +345,7 @@ int main() {
             }
             case 7: { // Drop Image
 
-                DropArea dropArea;
-                scanf("%d %d", &dropArea.axis_x, &dropArea.axis_y);
-                scanf("%d %d", &dropArea.width_drop, &dropArea.height_drop);
-
-                image = applyDropImage(image, dropArea);
+                image = applyDropImage(image);
                 break;
 
             }
